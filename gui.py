@@ -22,9 +22,12 @@ class GUI:
         root.option_add('*tearOff', False)
         root.title("SOFIA - Support Over FIA")
         root.resizable(False, False)
-        icon = PhotoImage(
-            file=f"{pathlib.Path().parent.absolute()}\\squarelogo.gif") #file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
-        root.iconphoto(True, icon)
+        try:
+            icon = PhotoImage(
+                file=os.path.join(os.path.dirname(__file__), "squarelogo.gif")) #file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
+            root.iconphoto(True, icon)
+        except:
+            root.iconphoto(False)
         self.notebook = ttk.Notebook(root, height=450, width=800)
         self.notebook.grid()
         self.SetupWindows(root)

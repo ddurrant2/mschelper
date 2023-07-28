@@ -2,8 +2,7 @@
 SOFIA - Support Over File Integrity Assurance
 By Dillon Durrant
 This Python Tkinter tool automates daily tasks performed by our File Integrity Assurance team.
-Build to .exe: pyinstaller main.py -n sofia.exe -F --windowed --add-data "squarelogo.gif;."
-squarelogo.gif must be in same directory as sofia.exe
+Build from output folder: pyinstaller ..\sofia_test\main.py -n sofia-0.3.5.exe -F --windowed --icon="..\sofia_test\myicon.ico" --add-data "..\sofia_test\squarelogo.gif;."
 """
 from gui import GUI 
 
