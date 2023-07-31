@@ -1,4 +1,4 @@
-Welcome to SOFIA - Support Over File Integrity Assurance.
+# Welcome to SOFIA - Support Over File Integrity Assurance.
 
 This tool is designed to assist with basic, daily tasks performed as part of a risk management analyst role. See below for explanations of each panel.
 
