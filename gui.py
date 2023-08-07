@@ -28,7 +28,7 @@ class GUI:
             root.iconphoto(True, icon)
         except:
             root.iconphoto(False)
-        self.notebook = ttk.Notebook(root, height=450, width=800)
+        self.notebook = ttk.Notebook(root, height=540, width=960)
         self.notebook.grid()
         self.SetupWindows(root)
         self.SetupLower()
