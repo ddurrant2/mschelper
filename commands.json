@@ -1,0 +1,131 @@
+{
+    "fiareg_direct": {
+        "title": "FIA-Reg Direct",
+        "prepend": "python3 fia_reg/register.py",
+        "flags": [
+            [
+                "-fn FILE_NAME",
+                true,
+                "-fn"
+            ],
+            [
+                "-u URL",
+                true,
+                "-u"
+            ],
+            [
+                "-vh VENDOR_HASH",
+                false,
+                "-vh"
+            ],
+            [
+                "-c CLIENTS",
+                true,
+                "-c"
+            ],
+            [
+                "-v VENDOR",
+                true,
+                "-v"
+            ],
+            [
+                "-p PRODUCT",
+                true,
+                "-p"
+            ],
+            [
+                "-pl PLATFORMS",
+                false,
+                "-pl"
+            ],
+            [
+                "-vr VERSION",
+                true,
+                "-vr"
+            ],
+            [
+                "-arch ARCHITECTURE",
+                false,
+                "-arch"
+            ],
+            [
+                "-loc LOCALE",
+                false,
+                "-loc"
+            ],
+            [
+                "-pd PUBLISH_DATE",
+                true,
+                "-pd"
+            ],
+            [
+                "-cl CHANGELOG",
+                true,
+                "-cl"
+            ],
+            [
+                "-cu CHANGE_LOG_URL",
+                false,
+                "-cu"
+            ],
+            [
+                "-bf BUGFIX",
+                false,
+                "-bf"
+            ],
+            [
+                "-fu FEATURE_UPDATE",
+                false,
+                "-fu"
+            ],
+            [
+                "-sp SECURITY_PATCH",
+                false,
+                "-sp"
+            ],
+            [
+                "-vu VERSION_UPGRADE",
+                false,
+                "-vu"
+            ],
+            [
+                "-rr RESTART_REQUIRED",
+                false,
+                "-rr"
+            ],
+            [
+                "-cpe CPE",
+                false,
+                "-cpe"
+            ],
+            [
+                "-cve CVE",
+                false,
+                "-cve"
+            ],
+            [
+                "-in INTERNAL_NOTES",
+                true,
+                "-in"
+            ]
+        ],
+        "append": "-ytp"
+    },
+    "ossbom": {
+        "title": "OSSBOM",
+        "prepend": "python3 ossbom",
+        "flags": [
+            [
+                "-A AUTHOR",
+                true,
+                "-A"
+            ],
+            [
+                "-p PRODUCT",
+                true,
+                "-p"
+            ]
+        ],
+        "append": "-m"
+    }
+}
