@@ -17,13 +17,13 @@ WINDOW_BAR = '#3F58C8'
 WINDOW_BAR_TEXT = '#FFFFFF'
 UPPER_NOTEBOOK_FILLER = '#95A1DB'
 UPPER_TAB_INACTIVE = '#BAC6FF'
-UPPER_TAB_ACTIVE = '#FFFFFF'
+UPPER_TAB_ACTIVE = '#F0F3FF'
 LOWER_NOTEBOOK_OUTLINE = '#6471A8'
 ACTIVE_TAB_TEXT = '#000000'
 FLAG_FILLER_TEXT = '#CACCD6'
 BUILD_BUTTON_FILLER = '#BAC6FF'
 BUILD_BUTTON_TEXT = '#000000'
-STANDARD_BG = '#949ECD'
+STANDARD_BG = '#F0F3FF' 
 
 
 class GUI:
@@ -36,7 +36,23 @@ class GUI:
         self.json = json_file
         """Initializes and creates the Tkinter window and Notebook sections"""
         root = Tk()
-        root.configure(background=STANDARD_BG,
+        #Set document style
+        s = ttk.Style()
+        s.theme_create("yummy", parent="alt", settings={
+            "Lower.TNotebook": {"configure": {"background": STANDARD_BG, "bordercolor": LOWER_NOTEBOOK_OUTLINE}},
+            "Upper.TNotebook": {"configure": {"background": UPPER_NOTEBOOK_FILLER, "bordercolor": LOWER_NOTEBOOK_OUTLINE}},
+            "TNotebook.Tab": {
+                "configure": {"background": UPPER_TAB_INACTIVE, "bevelamount": 0},
+                "map": {"background": [("selected", UPPER_TAB_ACTIVE)]}
+            },
+            "TFrame": {"configure": {"background": STANDARD_BG}},
+            "TLabel": {"configure": {"background": STANDARD_BG}},
+            "Info.TFrame": {"configure": {"background": UPPER_NOTEBOOK_FILLER}},
+        })
+        s.theme_use("yummy")
+
+        root.geometry("+25+25")
+        root.configure(background=UPPER_NOTEBOOK_FILLER,
                        width=WIN_WIDTH, height=WIN_HEIGHT)
         root.option_add('*tearOff', False)
         root.title("SOFIA - Support Over FIA")
@@ -46,8 +62,8 @@ class GUI:
                 file=os.path.join(os.path.dirname(__file__), "squarelogo.gif"))  # file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
             root.iconphoto(True, icon)
         except:
-            root.iconphoto(False)
-        self.notebook = ttk.Notebook(root)
+            pass
+        self.notebook = ttk.Notebook(root, style="Upper.TNotebook")
         self.notebook.grid(sticky='ew')
         self.SetupWindows(root)
         self.SetupCommandBuilder()
@@ -67,7 +83,7 @@ class GUI:
     def SetupWindows(self, root):
         """Initializes frames for each tab"""
         # Info footer
-        self.infoFooter = tk.Frame(root, bg=STANDARD_BG)
+        self.infoFooter = ttk.Frame(root, style="Info.TFrame")
         # Create frames for each tab
         self.lowerFrame = ttk.Frame(self.notebook)
         self.hashFrame = ttk.Frame(self.notebook)
@@ -86,11 +102,11 @@ class GUI:
         Label(self.hashFrame, text="Hash a file with ease! \nSelect your file below.", font=(
             "Helvetica", 12)).grid(pady=15, sticky='news')
         Label(self.commandBuilderFrame, text="Handy tool for crafting CLI commands!", font=(
-            "Helvetica", 12)).grid(padx=10, pady=15, sticky='news')
+            "Helvetica", 12), bg=STANDARD_BG).grid(padx=10, pady=15, sticky='news')
         Label(self.cveBodySearchFrame, text="Got a changelog with too many CVE's? \nPaste the whole body here and we'll give you a comma-separated list!",
               font=("Helvetica", 12)).grid(pady=15, sticky='news')
         self.infoFooter.grid()
-        Label(self.infoFooter, background=STANDARD_BG,
+        Label(self.infoFooter, background=UPPER_NOTEBOOK_FILLER,
               text=f"Created by Dillon Durrant - {version}").grid()
 
     def SetupLower(self):
@@ -165,7 +181,7 @@ class GUI:
         """Sets up and maintains the frame for holding the notebook of different commands"""
 
         # set up notebook of commands
-        self.commandNotebook = ttk.Notebook(self.commandBuilderFrame)
+        self.commandNotebook = ttk.Notebook(self.commandBuilderFrame, style="Lower.TNotebook")
         self.commandNotebook.grid(sticky='ew', ipadx=10)
 
         # establish frames of notebook FOR
@@ -181,16 +197,16 @@ class GUI:
             self.commandFlags[f"{self.json[key]['title']}"] = []
             for i, flag in enumerate(self.json[key]["flags"]):
                 col = i // COL_MAX
-                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(
+                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0], background=STANDARD_BG).grid(
                     row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
                 self.commandFlags[f"{self.json[key]['title']}"].append(
-                    Text(self.commandFrames[-1], height=1, width=32))
+                    Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1))
                 self.commandFlags[f"{self.json[key]['title']}"][-1].grid(
                     row=(i-(COL_MAX*col)), column=(col*4)+1)
             self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
 
             Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
-                self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5, pady=5)
+                self.commandNotebook.select(), "text")]), background=BUILD_BUTTON_FILLER).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5, pady=5)
         self.commandResults = Text(
             self.commandBuilderFrame, height=3, width=64)
         self.commandResults.grid(row=3, pady=5)
