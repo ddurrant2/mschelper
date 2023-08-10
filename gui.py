@@ -23,6 +23,8 @@ ACTIVE_TAB_TEXT = '#000000'
 FLAG_FILLER_TEXT = '#CACCD6'
 BUILD_BUTTON_FILLER = '#BAC6FF'
 BUILD_BUTTON_TEXT = '#000000'
+STANDARD_BG = '#949ECD'
+
 
 class GUI:
     """
@@ -30,21 +32,23 @@ class GUI:
     """
 
     def __init__(self, json_file):
-        #self.TestJson(json_file)
+        # self.TestJson(json_file)
         self.json = json_file
         """Initializes and creates the Tkinter window and Notebook sections"""
         root = Tk()
+        root.configure(background=STANDARD_BG,
+                       width=WIN_WIDTH, height=WIN_HEIGHT)
         root.option_add('*tearOff', False)
         root.title("SOFIA - Support Over FIA")
         root.resizable(False, False)
         try:
             icon = PhotoImage(
-                file=os.path.join(os.path.dirname(__file__), "squarelogo.gif")) #file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
+                file=os.path.join(os.path.dirname(__file__), "squarelogo.gif"))  # file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
             root.iconphoto(True, icon)
         except:
             root.iconphoto(False)
-        self.notebook = ttk.Notebook(root, height=WIN_HEIGHT, width=WIN_WIDTH)
-        self.notebook.grid()
+        self.notebook = ttk.Notebook(root)
+        self.notebook.grid(sticky='ew')
         self.SetupWindows(root)
         self.SetupCommandBuilder()
         self.SetupLower()
@@ -63,7 +67,7 @@ class GUI:
     def SetupWindows(self, root):
         """Initializes frames for each tab"""
         # Info footer
-        self.infoFooter = ttk.Frame(root)
+        self.infoFooter = tk.Frame(root, bg=STANDARD_BG)
         # Create frames for each tab
         self.lowerFrame = ttk.Frame(self.notebook)
         self.hashFrame = ttk.Frame(self.notebook)
@@ -82,11 +86,11 @@ class GUI:
         Label(self.hashFrame, text="Hash a file with ease! \nSelect your file below.", font=(
             "Helvetica", 12)).grid(pady=15, sticky='news')
         Label(self.commandBuilderFrame, text="Handy tool for crafting CLI commands!", font=(
-            "Helvetica", 12)).grid(pady=15, sticky='news')
+            "Helvetica", 12)).grid(padx=10, pady=15, sticky='news')
         Label(self.cveBodySearchFrame, text="Got a changelog with too many CVE's? \nPaste the whole body here and we'll give you a comma-separated list!",
               font=("Helvetica", 12)).grid(pady=15, sticky='news')
         self.infoFooter.grid()
-        Label(self.infoFooter,
+        Label(self.infoFooter, background=STANDARD_BG,
               text=f"Created by Dillon Durrant - {version}").grid()
 
     def SetupLower(self):
@@ -162,42 +166,49 @@ class GUI:
 
         # set up notebook of commands
         self.commandNotebook = ttk.Notebook(self.commandBuilderFrame)
-        self.commandNotebook.grid()
+        self.commandNotebook.grid(sticky='ew', ipadx=10)
 
         # establish frames of notebook FOR
         self.commandFrames = []
-        self.commandObjects = {} 
+        self.commandObjects = {}
         self.commandFlags = {}
-        self.scrollFrames = {}
-        for key, value in self.json.items(): #FOR each command - each has own tab
+        for key, value in self.json.items():
             self.commandFrames.append(ttk.Frame(self.commandNotebook))
-            self.commandNotebook.add(self.commandFrames[-1], text=self.json[key]["title"])
+            self.commandNotebook.add(
+                self.commandFrames[-1], text=self.json[key]["title"])
 
-            #Populate flag frames
+            # Populate flag frames
             self.commandFlags[f"{self.json[key]['title']}"] = []
-            for i, flag in enumerate(self.json[key]["flags"]): 
+            for i, flag in enumerate(self.json[key]["flags"]):
                 col = i // COL_MAX
-                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
-                self.commandFlags[f"{self.json[key]['title']}"].append(Text(self.commandFrames[-1], height=1, width=32))
-                self.commandFlags[f"{self.json[key]['title']}"][-1].grid(row=(i-(COL_MAX*col)), column=(col*4)+1)
+                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(
+                    row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
+                self.commandFlags[f"{self.json[key]['title']}"].append(
+                    Text(self.commandFrames[-1], height=1, width=32))
+                self.commandFlags[f"{self.json[key]['title']}"][-1].grid(
+                    row=(i-(COL_MAX*col)), column=(col*4)+1)
             self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
-            
-            Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5)
-        self.commandResults = Text(self.commandBuilderFrame, height=3, width=64)
-        self.commandResults.grid(row=3)
+
+            Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
+                self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5, pady=5)
+        self.commandResults = Text(
+            self.commandBuilderFrame, height=3, width=64)
+        self.commandResults.grid(row=3, pady=5)
 
     def Build(self, comm):
         """Constructs a command for use in CLI"""
         isSuccessful = True
         commandList = f'{comm["prepend"]}'
         for j, c in enumerate(self.commandFlags[comm["title"]]):
-            if c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == True: #if blank but required
+            # if blank but required
+            if c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == True:
                 commandList = f'Required flag missing: {comm["flags"][j][2]}'
                 isSuccessful = False
                 break
-            elif c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == False: #if blank but not required
+            # if blank but not required
+            elif c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == False:
                 pass
-            else: #if not blank
+            else:  # if not blank
                 commandList += " "
                 commandList += comm["flags"][j][2]
                 commandList += f' "{c.get(1.0, "end").strip()}"'
@@ -207,57 +218,11 @@ class GUI:
         self.commandResults.insert(
             1.0, commandList)
 
-        # # Build direct scan frame FOR
-        # Label(self.directScanFrame, text="-u - Download URL").grid(row=3, column=0)
-        # self.directH = Text(self.directScanFrame, height=2, width=64)
-        # self.directH.grid(row=3, column=1)
-        # self.directButton = Button(
-        #     self.directScanFrame, text="Build!", command=self.DirectScan)
-        # self.directButton.grid(row=4, columnspan=2, pady=10)
-        # Label(self.directScanFrame, text="Result: ").grid(row=5, column=0)
-        # self.directResult = Text(self.directScanFrame, height=2, width=64)
-        # self.directResult.grid(row=5, column=1)
-
-        # # build OSSBOM frame
-        # Label(self.ossbomFrame,
-        #       text="-f - repo location from bin \n(eg. repos/mypy)").grid(row=3, column=0)
-        # self.ossbom_f = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_f.grid(row=3, column=1)
-        # Label(self.ossbomFrame,
-        #       text="-A - Author \n(eg. Python Software Foundation)").grid(row=4, column=0)
-        # self.ossbom_a = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_a.grid(row=4, column=1)
-        # Label(self.ossbomFrame,
-        #       text="-N - Project Name \n(eg. mypy)").grid(row=5, column=0)
-        # self.ossbom_n = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_n.grid(row=5, column=1)
-        # Label(self.ossbomFrame,
-        #       text="-V - Version \n(eg. 1.0.1)").grid(row=6, column=0)
-        # self.ossbom_v = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_v.grid(row=6, column=1)
-        # Label(self.ossbomFrame, text="-E - External References - Must include at least one. \nChoose from list here: https://cyclonedx.org/docs/1.4/json/#metadata_tools_items_externalReferences_items_type").grid(row=7, column=0, columnspan=2)
-        # Label(self.ossbomFrame, text="Reference Item Type\n(eg. vcs)").grid(
-        #     row=8, column=0)
-        # self.ossbom_etype = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_etype.grid(row=8, column=1)
-        # Label(self.ossbomFrame, text="Reference Item Value\n(eg.https://www.github.com/author/project)").grid(row=9, column=0)
-        # self.ossbom_evalue = Text(self.ossbomFrame, height=1, width=64)
-        # self.ossbom_evalue.grid(row=9, column=1)
-
-        # # result
-        # self.ossbomBuildButton = Button(
-        #     self.ossbomFrame, text="Build!", command=self.OSSBOM)
-        # self.ossbomBuildButton.grid(row=10, columnspan=2, pady=10)
-        # Label(self.ossbomFrame, text="Result: ").grid(row=11, column=0)
-        # self.ossbomResult = Text(self.ossbomFrame, height=4, width=64)
-        # self.ossbomResult.grid(row=11, column=1)
-
     def LowerText(self):
         """Lowers text of file hash, then displays that value in the self.result field"""
         self.done.config(text="Done!")
         self.result.delete(1.0, "end")
         self.result.insert(1.0, self.upperText.get().lower())
-        # print(self.lower.cget("text"))
 
     def HashFile(self):
         """Retrieves MD5, SHA1, and SHA256 hashes for selected file"""
@@ -303,11 +268,3 @@ class GUI:
         self.parsedText.insert(1.0, ', '.join(
             list(set(cveRegex.findall(self.bodyText.get(1.0, "end"))))))
 
-    
-
-    def OSSBOM(self):
-        """Constructs an OSSBOM command for use in CLI"""
-        self.ossbomResult.delete(
-            1.0, "end") 
-        self.ossbomResult.insert(
-            1.0, f'create_sbom.sh -f "{self.ossbom_f.get(1.0, "end").strip()}" -A "{self.ossbom_a.get(1.0, "end").strip()}" -N "{self.ossbom_n.get(1.0, "end").strip()}" -V "{self.ossbom_v.get(1.0, "end").strip()}" -E \'[{{"url":"{self.ossbom_evalue.get(1.0, "end").strip()}", "type":"{self.ossbom_etype.get(1.0, "end").strip()}"}}]\' -m -v')
