@@ -1,4 +1,5 @@
 from tkinter import *
+import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import os
@@ -7,16 +8,30 @@ import re
 import webbrowser
 import pathlib
 
-version = "v0.3 pre-alpha"
-# bgColor = '#f0f5ff'
+version = "v0.8 Alpha"
+WIN_HEIGHT = 540
+WIN_WIDTH = 960
+COL_MAX = 11
 
+WINDOW_BAR = '#3F58C8'
+WINDOW_BAR_TEXT = '#FFFFFF'
+UPPER_NOTEBOOK_FILLER = '#95A1DB'
+UPPER_TAB_INACTIVE = '#BAC6FF'
+UPPER_TAB_ACTIVE = '#FFFFFF'
+LOWER_NOTEBOOK_OUTLINE = '#6471A8'
+ACTIVE_TAB_TEXT = '#000000'
+FLAG_FILLER_TEXT = '#CACCD6'
+BUILD_BUTTON_FILLER = '#BAC6FF'
+BUILD_BUTTON_TEXT = '#000000'
 
 class GUI:
     """
     The GUI class creates and maintains all Tkinter features of the app.
     """
 
-    def __init__(self):
+    def __init__(self, json_file):
+        #self.TestJson(json_file)
+        self.json = json_file
         """Initializes and creates the Tkinter window and Notebook sections"""
         root = Tk()
         root.option_add('*tearOff', False)
@@ -28,15 +43,22 @@ class GUI:
             root.iconphoto(True, icon)
         except:
             root.iconphoto(False)
-        self.notebook = ttk.Notebook(root, height=540, width=960)
+        self.notebook = ttk.Notebook(root, height=WIN_HEIGHT, width=WIN_WIDTH)
         self.notebook.grid()
         self.SetupWindows(root)
+        self.SetupCommandBuilder()
         self.SetupLower()
         self.SetupHash()
         self.SetupCVEParse()
-        self.SetupCommandBuilder()
 
         root.mainloop()
+
+    def TestJson(self, json_file):
+        for key, value in json_file.items():
+            print(json_file[key]["title"])
+            f'The {json_file[key]["title"]} command has the following flags:'
+            for flag in json_file[key]["flags"]:
+                print(f'{flag[0]}{"*" if flag[1] == True else ""}: {flag[2]}')
 
     def SetupWindows(self, root):
         """Initializes frames for each tab"""
@@ -49,20 +71,20 @@ class GUI:
         self.cveBodySearchFrame = ttk.Frame(self.notebook)
 
         # add frames to notebook with tab names
+        self.notebook.add(self.commandBuilderFrame, text="Command Builder")
         self.notebook.add(self.lowerFrame, text="Lower()")
         self.notebook.add(self.hashFrame, text="Hash a File")
         self.notebook.add(self.cveBodySearchFrame, text="CVE Body Search")
-        self.notebook.add(self.commandBuilderFrame, text="Command Builder")
 
         # Add descriptions to each tab
         Label(self.lowerFrame, text="Find a Vendor Hash that's in caps? \nPaste it below to get the lower case version!", font=(
-            "Helvetica", 12)).grid(pady=15)
+            "Helvetica", 12)).grid(pady=15, sticky='news')
         Label(self.hashFrame, text="Hash a file with ease! \nSelect your file below.", font=(
-            "Helvetica", 12)).grid(pady=15)
+            "Helvetica", 12)).grid(pady=15, sticky='news')
         Label(self.commandBuilderFrame, text="Handy tool for crafting CLI commands!", font=(
-            "Helvetica", 12)).grid(pady=15)
+            "Helvetica", 12)).grid(pady=15, sticky='news')
         Label(self.cveBodySearchFrame, text="Got a changelog with too many CVE's? \nPaste the whole body here and we'll give you a comma-separated list!",
-              font=("Helvetica", 12)).grid(pady=15)
+              font=("Helvetica", 12)).grid(pady=15, sticky='news')
         self.infoFooter.grid()
         Label(self.infoFooter,
               text=f"Created by Dillon Durrant - {version}").grid()
@@ -142,72 +164,93 @@ class GUI:
         self.commandNotebook = ttk.Notebook(self.commandBuilderFrame)
         self.commandNotebook.grid()
 
-        # establish frames of notebook
-        self.directScanFrame = ttk.Frame(self.commandNotebook)
-        self.commandNotebook.add(self.directScanFrame, text="Direct Scan")
-        self.ossbomFrame = ttk.Frame(self.commandNotebook)
-        self.commandNotebook.add(self.ossbomFrame, text="OSSBOM")
+        # establish frames of notebook FOR
+        self.commandFrames = []
+        self.commandObjects = {} 
+        self.commandFlags = {}
+        self.scrollFrames = {}
+        for key, value in self.json.items(): #FOR each command - each has own tab
+            self.commandFrames.append(ttk.Frame(self.commandNotebook))
+            self.commandNotebook.add(self.commandFrames[-1], text=self.json[key]["title"])
 
-        # Hyperlink functions
-        def callback(url):
-            webbrowser.open_new_tab(url)
+            #Populate flag frames
+            self.commandFlags[f"{self.json[key]['title']}"] = []
+            for i, flag in enumerate(self.json[key]["flags"]): 
+                col = i // COL_MAX
+                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
+                self.commandFlags[f"{self.json[key]['title']}"].append(Text(self.commandFrames[-1], height=1, width=32))
+                self.commandFlags[f"{self.json[key]['title']}"][-1].grid(row=(i-(COL_MAX*col)), column=(col*4)+1)
+            self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
+            
+            Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5)
+        self.commandResults = Text(self.commandBuilderFrame, height=3, width=64)
+        self.commandResults.grid(row=3)
 
-        # Build direct scan frame
-        directDocs = Label(
-            self.directScanFrame, text="Direct Scan - Click to view Documentation", fg="blue", cursor="hand2")
-        directDocs.grid(row=0, columnspan=2)
-        directDocs.bind("<Button-1>", lambda e: callback(
-            "https://fortressinfosec.atlassian.net/wiki/spaces/FIAOpsKB/pages/4026630450/CLI+Registrations"))
-        Label(self.directScanFrame, text="-u - Download URL").grid(row=3, column=0)
-        self.directH = Text(self.directScanFrame, height=2, width=64)
-        self.directH.grid(row=3, column=1)
-        self.directButton = Button(
-            self.directScanFrame, text="Build!", command=self.DirectScan)
-        self.directButton.grid(row=4, columnspan=2, pady=10)
-        Label(self.directScanFrame, text="Result: ").grid(row=5, column=0)
-        self.directResult = Text(self.directScanFrame, height=2, width=64)
-        self.directResult.grid(row=5, column=1)
+    def Build(self, comm):
+        """Constructs a command for use in CLI"""
+        isSuccessful = True
+        commandList = f'{comm["prepend"]}'
+        for j, c in enumerate(self.commandFlags[comm["title"]]):
+            if c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == True: #if blank but required
+                commandList = f'Required flag missing: {comm["flags"][j][2]}'
+                isSuccessful = False
+                break
+            elif c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == False: #if blank but not required
+                pass
+            else: #if not blank
+                commandList += " "
+                commandList += comm["flags"][j][2]
+                commandList += f' "{c.get(1.0, "end").strip()}"'
+        if isSuccessful:
+            commandList += f' {comm["append"]}'
+        self.commandResults.delete(1.0, "end")
+        self.commandResults.insert(
+            1.0, commandList)
 
-        # build OSSBOM frame
-        ossbomDocs = Label(
-            self.ossbomFrame, text="OSSBOM - Click to view Documentation", fg="blue", cursor="hand2")
-        ossbomDocs.grid(row=0, columnspan=2)
-        ossbomDocs.bind("<Button-1>", lambda e: callback(
-            "https://fortressinfosec.atlassian.net/wiki/spaces/FIAOpsKB/pages/4021649657/OSSBOM+Walkthrough"))
+        # # Build direct scan frame FOR
+        # Label(self.directScanFrame, text="-u - Download URL").grid(row=3, column=0)
+        # self.directH = Text(self.directScanFrame, height=2, width=64)
+        # self.directH.grid(row=3, column=1)
+        # self.directButton = Button(
+        #     self.directScanFrame, text="Build!", command=self.DirectScan)
+        # self.directButton.grid(row=4, columnspan=2, pady=10)
+        # Label(self.directScanFrame, text="Result: ").grid(row=5, column=0)
+        # self.directResult = Text(self.directScanFrame, height=2, width=64)
+        # self.directResult.grid(row=5, column=1)
 
-        # Set up flags
-        Label(self.ossbomFrame,
-              text="-f - repo location from bin \n(eg. repos/mypy)").grid(row=3, column=0)
-        self.ossbom_f = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_f.grid(row=3, column=1)
-        Label(self.ossbomFrame,
-              text="-A - Author \n(eg. Python Software Foundation)").grid(row=4, column=0)
-        self.ossbom_a = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_a.grid(row=4, column=1)
-        Label(self.ossbomFrame,
-              text="-N - Project Name \n(eg. mypy)").grid(row=5, column=0)
-        self.ossbom_n = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_n.grid(row=5, column=1)
-        Label(self.ossbomFrame,
-              text="-V - Version \n(eg. 1.0.1)").grid(row=6, column=0)
-        self.ossbom_v = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_v.grid(row=6, column=1)
-        Label(self.ossbomFrame, text="-E - External References - Must include at least one. \nChoose from list here: https://cyclonedx.org/docs/1.4/json/#metadata_tools_items_externalReferences_items_type").grid(row=7, column=0, columnspan=2)
-        Label(self.ossbomFrame, text="Reference Item Type\n(eg. vcs)").grid(
-            row=8, column=0)
-        self.ossbom_etype = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_etype.grid(row=8, column=1)
-        Label(self.ossbomFrame, text="Reference Item Value\n(eg.https://www.github.com/author/project)").grid(row=9, column=0)
-        self.ossbom_evalue = Text(self.ossbomFrame, height=1, width=64)
-        self.ossbom_evalue.grid(row=9, column=1)
+        # # build OSSBOM frame
+        # Label(self.ossbomFrame,
+        #       text="-f - repo location from bin \n(eg. repos/mypy)").grid(row=3, column=0)
+        # self.ossbom_f = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_f.grid(row=3, column=1)
+        # Label(self.ossbomFrame,
+        #       text="-A - Author \n(eg. Python Software Foundation)").grid(row=4, column=0)
+        # self.ossbom_a = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_a.grid(row=4, column=1)
+        # Label(self.ossbomFrame,
+        #       text="-N - Project Name \n(eg. mypy)").grid(row=5, column=0)
+        # self.ossbom_n = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_n.grid(row=5, column=1)
+        # Label(self.ossbomFrame,
+        #       text="-V - Version \n(eg. 1.0.1)").grid(row=6, column=0)
+        # self.ossbom_v = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_v.grid(row=6, column=1)
+        # Label(self.ossbomFrame, text="-E - External References - Must include at least one. \nChoose from list here: https://cyclonedx.org/docs/1.4/json/#metadata_tools_items_externalReferences_items_type").grid(row=7, column=0, columnspan=2)
+        # Label(self.ossbomFrame, text="Reference Item Type\n(eg. vcs)").grid(
+        #     row=8, column=0)
+        # self.ossbom_etype = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_etype.grid(row=8, column=1)
+        # Label(self.ossbomFrame, text="Reference Item Value\n(eg.https://www.github.com/author/project)").grid(row=9, column=0)
+        # self.ossbom_evalue = Text(self.ossbomFrame, height=1, width=64)
+        # self.ossbom_evalue.grid(row=9, column=1)
 
-        # result
-        self.ossbomBuildButton = Button(
-            self.ossbomFrame, text="Build!", command=self.OSSBOM)
-        self.ossbomBuildButton.grid(row=10, columnspan=2, pady=10)
-        Label(self.ossbomFrame, text="Result: ").grid(row=11, column=0)
-        self.ossbomResult = Text(self.ossbomFrame, height=4, width=64)
-        self.ossbomResult.grid(row=11, column=1)
+        # # result
+        # self.ossbomBuildButton = Button(
+        #     self.ossbomFrame, text="Build!", command=self.OSSBOM)
+        # self.ossbomBuildButton.grid(row=10, columnspan=2, pady=10)
+        # Label(self.ossbomFrame, text="Result: ").grid(row=11, column=0)
+        # self.ossbomResult = Text(self.ossbomFrame, height=4, width=64)
+        # self.ossbomResult.grid(row=11, column=1)
 
     def LowerText(self):
         """Lowers text of file hash, then displays that value in the self.result field"""
@@ -260,11 +303,7 @@ class GUI:
         self.parsedText.insert(1.0, ', '.join(
             list(set(cveRegex.findall(self.bodyText.get(1.0, "end"))))))
 
-    def DirectScan(self):
-        """Constructs a Direct Registration command for use in CLI"""
-        self.directResult.delete(1.0, "end")
-        self.directResult.insert(
-            1.0, f"python3 fiayeeter.py -i -u {self.directH.get(1.0, 'end')}")
+    
 
     def OSSBOM(self):
         """Constructs an OSSBOM command for use in CLI"""
