@@ -42,12 +42,13 @@ class GUI:
             "Lower.TNotebook": {"configure": {"background": STANDARD_BG, "bordercolor": LOWER_NOTEBOOK_OUTLINE}},
             "Upper.TNotebook": {"configure": {"background": UPPER_NOTEBOOK_FILLER, "bordercolor": LOWER_NOTEBOOK_OUTLINE}},
             "TNotebook.Tab": {
-                "configure": {"background": UPPER_TAB_INACTIVE, "bevelamount": 0},
+                "configure": {"background": UPPER_TAB_INACTIVE, "angle": 0, "padding": [3,3], "bevelamount": 0},
                 "map": {"background": [("selected", UPPER_TAB_ACTIVE)]}
             },
             "TFrame": {"configure": {"background": STANDARD_BG}},
             "TLabel": {"configure": {"background": STANDARD_BG}},
             "Info.TFrame": {"configure": {"background": UPPER_NOTEBOOK_FILLER}},
+            "Info.TLabel": {"configure": {"background": UPPER_NOTEBOOK_FILLER, "font": ("Trebuchet MS", 8)}},
         })
         s.theme_use("yummy")
 
@@ -64,7 +65,7 @@ class GUI:
         except:
             pass
         self.notebook = ttk.Notebook(root, style="Upper.TNotebook")
-        self.notebook.grid(sticky='ew')
+        self.notebook.grid(sticky='ew', padx=10, pady=[10,0])
         self.SetupWindows(root)
         self.SetupCommandBuilder()
         self.SetupLower()
@@ -97,23 +98,19 @@ class GUI:
         self.notebook.add(self.cveBodySearchFrame, text="CVE Body Search")
 
         # Add descriptions to each tab
-        Label(self.lowerFrame, text="Find a Vendor Hash that's in caps? \nPaste it below to get the lower case version!", font=(
-            "Helvetica", 12)).grid(pady=15, sticky='news')
-        Label(self.hashFrame, text="Hash a file with ease! \nSelect your file below.", font=(
-            "Helvetica", 12)).grid(pady=15, sticky='news')
-        Label(self.commandBuilderFrame, text="Handy tool for crafting CLI commands!", font=(
-            "Helvetica", 12), bg=STANDARD_BG).grid(padx=10, pady=15, sticky='news')
-        Label(self.cveBodySearchFrame, text="Got a changelog with too many CVE's? \nPaste the whole body here and we'll give you a comma-separated list!",
-              font=("Helvetica", 12)).grid(pady=15, sticky='news')
-        self.infoFooter.grid()
-        Label(self.infoFooter, background=UPPER_NOTEBOOK_FILLER,
-              text=f"Created by Dillon Durrant - {version}").grid()
+        ttk.Label(self.lowerFrame, text="Find a Vendor Hash that's in caps? \nPaste it below to get the lower case version!").grid(pady=15, sticky='news')
+        ttk.Label(self.hashFrame, text="Hash a file with ease! \nSelect your file below.").grid(pady=15, sticky='news')
+        ttk.Label(self.commandBuilderFrame, text="Handy tool for crafting CLI commands!").grid(padx=10, pady=15, sticky='news')
+        ttk.Label(self.cveBodySearchFrame, text="Got a changelog with too many CVE's? \nPaste the whole body here and we'll give you a comma-separated list!",
+              ).grid(pady=15, sticky='news')
+        self.infoFooter.grid(sticky='ns')
+        ttk.Label(self.infoFooter, text=f"Created by Dillon Durrant - {version}", style="Info.TLabel").grid(sticky='ns')
 
     def SetupLower(self):
         """Sets up and maintains the frame for lowering a file hash"""
 
         # Entry field where users will put their uppercase hashes
-        Label(self.lowerFrame, text="Uppercase Hash:").grid(row=1, column=0)
+        ttk.Label(self.lowerFrame, text="Uppercase Hash:").grid(row=1, column=0)
         self.upperText = StringVar()
         self.upper = Entry(
             self.lowerFrame, textvariable=self.upperText, width=64)
@@ -125,11 +122,11 @@ class GUI:
         self.lowerButton.grid(row=4, column=0, pady=10)
 
         # Done message says that the operation is done.
-        self.done = Label(self.lowerFrame)
+        self.done = ttk.Label(self.lowerFrame)
         self.done.grid(row=5, column=0)
 
         # Displays the result of the .lower() method
-        Label(self.lowerFrame, text="Lowercase Hash:").grid(row=6, column=0)
+        ttk.Label(self.lowerFrame, text="Lowercase Hash:").grid(row=6, column=0)
         self.result = Text(self.lowerFrame, height=1)
         self.result.grid(row=7, column=0, padx=10)
 
@@ -144,16 +141,16 @@ class GUI:
         self.sha256Frame.grid(row=5, column=0)
 
         # Set up label and button for finding file
-        self.hashFileName = Label(self.hashFrame, text="No file selected")
+        self.hashFileName = ttk.Label(self.hashFrame, text="No file selected")
         self.hashFileName.grid(row=1, column=0)
         self.hashButton = ttk.Button(
             self.hashFrame, text="Select File", command=self.HashFile)
         self.hashButton.grid(row=2, column=0)
 
         # Set up labels and fields for hash values
-        Label(self.md5Frame, text="MD5: ").grid(row=0, column=0)
-        Label(self.sha1Frame, text="SHA1: ").grid(row=0, column=0)
-        Label(self.sha256Frame, text="SHA256: ").grid(row=0, column=0)
+        ttk.Label(self.md5Frame, text="MD5: ").grid(row=0, column=0)
+        ttk.Label(self.sha1Frame, text="SHA1: ").grid(row=0, column=0)
+        ttk.Label(self.sha256Frame, text="SHA256: ").grid(row=0, column=0)
         self.md5Hash = Text(self.md5Frame, width=64, height=1)
         self.md5Hash.grid(row=0, column=1)
         self.md5Hash.insert(1.0, "NA")
@@ -167,13 +164,13 @@ class GUI:
     def SetupCVEParse(self):
         """Sets up and maintains the frame for retrieving list of CVEs from body text"""
 
-        Label(self.cveBodySearchFrame, text="Input Text:").grid(row=1, column=0)
+        ttk.Label(self.cveBodySearchFrame, text="Input Text:").grid(row=1, column=0)
         self.bodyText = Text(self.cveBodySearchFrame, height=3, width=64)
         self.bodyText.grid(row=2, column=0)
-        self.CVEparseButton = Button(
+        self.CVEparseButton = ttk.Button(
             self.cveBodySearchFrame, text="List CVEs", command=self.ParseCVEs)
         self.CVEparseButton.grid(row=3, column=0)
-        Label(self.cveBodySearchFrame, text="CVEs Found:").grid(row=4, column=0)
+        ttk.Label(self.cveBodySearchFrame, text="CVEs Found:").grid(row=4, column=0)
         self.parsedText = Text(self.cveBodySearchFrame, height=3, width=64)
         self.parsedText.grid(row=5)
 
@@ -182,7 +179,7 @@ class GUI:
 
         # set up notebook of commands
         self.commandNotebook = ttk.Notebook(self.commandBuilderFrame, style="Lower.TNotebook")
-        self.commandNotebook.grid(sticky='ew', ipadx=10)
+        self.commandNotebook.grid(sticky='ew', ipadx=10, padx=50, pady=3)
 
         # establish frames of notebook FOR
         self.commandFrames = []
@@ -197,7 +194,7 @@ class GUI:
             self.commandFlags[f"{self.json[key]['title']}"] = []
             for i, flag in enumerate(self.json[key]["flags"]):
                 col = i // COL_MAX
-                Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0], background=STANDARD_BG).grid(
+                ttk.Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(
                     row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
                 self.commandFlags[f"{self.json[key]['title']}"].append(
                     Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1))
@@ -205,11 +202,11 @@ class GUI:
                     row=(i-(COL_MAX*col)), column=(col*4)+1)
             self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
 
-            Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
-                self.commandNotebook.select(), "text")]), background=BUILD_BUTTON_FILLER).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5, pady=5)
+            ttk.Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
+                self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', ipadx=10, ipady=5, pady=5)
         self.commandResults = Text(
             self.commandBuilderFrame, height=3, width=64)
-        self.commandResults.grid(row=3, pady=5)
+        self.commandResults.grid(row=3, pady=[5,10])
 
     def Build(self, comm):
         """Constructs a command for use in CLI"""
