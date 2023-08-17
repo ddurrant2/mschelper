@@ -31,11 +31,12 @@ class GUI:
     The GUI class creates and maintains all Tkinter features of the app.
     """
 
-    def __init__(self, json_file):
+    def __init__(self, json_file, init):
         # self.TestJson(json_file)
         self.json = json_file
         """Initializes and creates the Tkinter window and Notebook sections"""
         root = Tk()
+
         #Set document style
         s = ttk.Style()
         s.theme_create("yummy", parent="alt", settings={
@@ -64,18 +65,21 @@ class GUI:
         })
         s.theme_use("yummy")
 
+        #Format root window options
         root.geometry("+25+25")
         root.configure(background=UPPER_NOTEBOOK_FILLER,
                        width=WIN_WIDTH, height=WIN_HEIGHT)
         root.option_add('*tearOff', False)
-        root.title("MSC Helper")
+        root.title(init["windowTitle"])
         root.resizable(False, False)
-        # try:
-        #     icon = PhotoImage(
-        #         file=os.path.join(os.path.dirname(__file__), "squarelogo.gif"))  # file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
-        #     root.iconphoto(True, icon)
-        # except:
-        #     pass
+        try:
+            icon = PhotoImage(
+                file=os.path.join(os.path.dirname(__file__), init["gifName"]))  # file="C:\\Users\\ddurrant\\Documents\\squarelogo.gif"
+            root.iconphoto(True, icon)
+        except:
+            pass
+
+        #Set notebook
         self.notebook = ttk.Notebook(root, style="Upper.TNotebook")
         self.notebook.grid(sticky='ew', padx=5, pady=[10,0])
         self.SetupWindows(root)
@@ -87,6 +91,7 @@ class GUI:
         root.mainloop()
 
     def TestJson(self, json_file):
+        """Test that a json has properly loaded."""
         for key, value in json_file.items():
             print(json_file[key]["title"])
             f'The {json_file[key]["title"]} command has the following flags:'
@@ -97,6 +102,7 @@ class GUI:
         """Initializes frames for each tab"""
         # Info footer
         self.infoFooter = ttk.Frame(root, style="Info.TFrame")
+
         # Create frames for each tab
         self.lowerFrame = ttk.Frame(self.notebook, width=WIN_WIDTH-25)
         self.hashFrame = ttk.Frame(self.notebook)
@@ -189,6 +195,7 @@ class GUI:
     def SetupCVEParse(self):
         """Sets up and maintains the frame for retrieving list of CVEs from body text"""
 
+        #Initialize CVE widgets
         ttk.Label(self.cveBodySearchContent, text="Input Text:").grid(row=1, column=0)
         self.bodyText = Text(self.cveBodySearchContent, height=3, width=64)
         self.bodyText.grid(row=2, column=0)
@@ -296,7 +303,7 @@ class GUI:
             self.sha256Hash.delete(3.0, "end")
 
         except:
-            print("Not happening, sport.")
+            print("Not happening, sport.") #replace with error pop-up
 
     def ParseCVEs(self):
         """Parses body text to find CVEs, deletes duplicates, then creates comma-separated list of CVEs"""
