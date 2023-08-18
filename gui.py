@@ -7,6 +7,7 @@ import subprocess
 import re
 import webbrowser
 import pathlib
+import sanitize
 
 version = "v0.8 Alpha"
 WIN_HEIGHT = 540
@@ -215,23 +216,24 @@ class GUI:
 
         # establish frames of notebook FOR
         self.commandFrames = []
-        self.commandObjects = {}
-        self.commandFlags = {}
-        for key, value in self.json.items():
+        self.commandObjects = {} #one per command
+        self.commandInputs = {}
+        for key, value in self.json.items(): # for command in all json commands
             self.commandFrames.append(ttk.Frame(self.commandNotebook))
             self.commandNotebook.add(
                 self.commandFrames[-1], text=self.json[key]["title"])
 
             # Populate flag frames
-            self.commandFlags[f"{self.json[key]['title']}"] = []
-            for i, flag in enumerate(self.json[key]["flags"]):
+            self.commandInputs[f"{self.json[key]['title']}"] = {} #one dict per command
+            i = 0
+            for k, v in self.json[key]["flags"].items():
                 col = i // COL_MAX
-                ttk.Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(
+                ttk.Label(self.commandFrames[-1], text=f'{self.json[key]["flags"][k]["name"]}*' if self.json[key]["flags"][k]["required"] == True else self.json[key]["flags"][k]["name"]).grid(
                     row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
-                self.commandFlags[f"{self.json[key]['title']}"].append(
-                    Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1, font=("Trebuchet MS", 10)))
-                self.commandFlags[f"{self.json[key]['title']}"][-1].grid(
+                self.commandInputs[f'{self.json[key]["flags"][k]["name"]}'] = Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1, font=("Trebuchet MS", 10))
+                self.commandInputs[f'{self.json[key]["flags"][k]["name"]}'].grid(
                     row=(i-(COL_MAX*col)), column=(col*4)+1)
+                i += 1
             self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
 
             ttk.Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
@@ -240,30 +242,35 @@ class GUI:
             self.commandBuilderContent, height=3, width=64, font=("Trebuchet MS", 10))
         self.commandResults.grid(row=3, pady=[5,10])
 
-    def Build(self, comm):
+    def Build(self, comm): #comm = entire command dictionary for panel on which build button was pushed
         """Constructs a command for use in CLI"""
         isSuccessful = True
-        commandList = f'{comm["prepend"]}'
-        for j, c in enumerate(self.commandFlags[comm["title"]]):
+        commandOutput = f'{comm["prepend"]}'
+        for keys, values in comm["flags"].items(): #for each flag in the specified command
             # if blank but required
-            if c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == True:
-                commandList = f'Required flag missing: {comm["flags"][j][2]}'
+            if self.commandInputs[keys].get(1.0, "end").strip() == "" and comm["flags"][keys]["required"] == True:
+                commandOutput = f'Required flag missing: {comm["flags"][keys]["flag"]}'
                 isSuccessful = False
                 break
             # if blank but not required
-            elif c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == False:
+            elif self.commandInputs[keys].get(1.0, "end").strip() == "" and comm["flags"][keys]["required"] == False:
                 pass
             # if not blank
             else:  
-                commandList += " "
-                commandList += comm["flags"][j][2]
-                flagOutput = c.get(1.0, "end").strip().replace("\n", "\\n")
-                commandList += f' "{flagOutput}"'
+                commandOutput += " "
+                commandOutput += comm["flags"][keys]["flag"]
+                flagOutput = self.commandInputs[comm["flags"][keys]["name"]].get(1.0, "end").strip().replace("\n", "\\n")
+                if "sanitizeFunction" in comm["flags"][keys].keys():
+                    print(f'Sanitize found for {comm["flags"][keys]}')
+                    func = getattr(sanitize, comm["flags"][keys]["sanitizeFunction"])
+                    commandOutput += f' "{func([self.commandInputs[comm["flags"][x]["name"]].get(1.0, "end") for x in comm["flags"][keys]["sanitizeParameters"]])}"'
+                else:
+                    commandOutput += f' "{flagOutput}"'
         if isSuccessful:
-            commandList += f' {comm["append"]}'
+            commandOutput += f' {comm["append"]}'
         self.commandResults.delete(1.0, "end")
         self.commandResults.insert(
-            1.0, commandList)
+            1.0, commandOutput)
 
     def LowerText(self):
         """Lowers text of file hash, then displays that value in the self.result field"""
