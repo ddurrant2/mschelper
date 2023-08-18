@@ -158,7 +158,7 @@ class GUI:
 
         # Displays the result of the .lower() method
         ttk.Label(self.lowerContent, text="Lowercase Hash:").grid(row=6, column=0)
-        self.result = Text(self.lowerContent, height=1)
+        self.result = Text(self.lowerContent, height=1, font=("Trebuchet MS", 10))
         self.result.grid(row=7, column=0, padx=10)
 
     def SetupHash(self):
@@ -182,13 +182,13 @@ class GUI:
         ttk.Label(self.md5Frame, text="MD5: ").grid(row=0, column=0)
         ttk.Label(self.sha1Frame, text="SHA1: ").grid(row=0, column=0)
         ttk.Label(self.sha256Frame, text="SHA256: ").grid(row=0, column=0)
-        self.md5Hash = Text(self.md5Frame, width=64, height=1)
+        self.md5Hash = Text(self.md5Frame, width=64, height=1, font=("Trebuchet MS", 10))
         self.md5Hash.grid(row=0, column=1)
         self.md5Hash.insert(1.0, "NA")
-        self.sha1Hash = Text(self.sha1Frame, width=64, height=1)
+        self.sha1Hash = Text(self.sha1Frame, width=64, height=1, font=("Trebuchet MS", 10))
         self.sha1Hash.grid(row=0, column=1)
         self.sha1Hash.insert(1.0, "NA")
-        self.sha256Hash = Text(self.sha256Frame, width=64, height=1)
+        self.sha256Hash = Text(self.sha256Frame, width=64, height=1, font=("Trebuchet MS", 10))
         self.sha256Hash.grid(row=0, column=1)
         self.sha256Hash.insert(1.0, "NA")
 
@@ -197,13 +197,13 @@ class GUI:
 
         #Initialize CVE widgets
         ttk.Label(self.cveBodySearchContent, text="Input Text:").grid(row=1, column=0)
-        self.bodyText = Text(self.cveBodySearchContent, height=3, width=64)
+        self.bodyText = Text(self.cveBodySearchContent, height=3, width=64, font=("Trebuchet MS", 10))
         self.bodyText.grid(row=2, column=0)
         self.CVEparseButton = ttk.Button(
             self.cveBodySearchContent, text="List CVEs", command=self.ParseCVEs)
         self.CVEparseButton.grid(row=3, column=0)
         ttk.Label(self.cveBodySearchContent, text="CVEs Found:").grid(row=4, column=0)
-        self.parsedText = Text(self.cveBodySearchContent, height=3, width=64)
+        self.parsedText = Text(self.cveBodySearchContent, height=3, width=64, font=("Trebuchet MS", 10))
         self.parsedText.grid(row=5)
 
     def SetupCommandBuilder(self):
@@ -229,7 +229,7 @@ class GUI:
                 ttk.Label(self.commandFrames[-1], text=f'{flag[0]}*' if flag[1] == True else flag[0]).grid(
                     row=(i-(COL_MAX*col)), column=(col*4), padx=5, pady=5)
                 self.commandFlags[f"{self.json[key]['title']}"].append(
-                    Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1))
+                    Text(self.commandFrames[-1], height=1, width=32, highlightbackground=FLAG_FILLER_TEXT, highlightcolor=ACTIVE_TAB_TEXT, highlightthickness=1, font=("Trebuchet MS", 10)))
                 self.commandFlags[f"{self.json[key]['title']}"][-1].grid(
                     row=(i-(COL_MAX*col)), column=(col*4)+1)
             self.commandObjects[f"{self.json[key]['title']}"] = self.json[key]
@@ -237,7 +237,7 @@ class GUI:
             ttk.Button(self.commandFrames[-1], text="Build!", command=lambda: self.Build(self.commandObjects[self.commandNotebook.tab(
                 self.commandNotebook.select(), "text")])).grid(column=(col*3), sticky='ew', pady=5)
         self.commandResults = Text(
-            self.commandBuilderContent, height=3, width=64)
+            self.commandBuilderContent, height=3, width=64, font=("Trebuchet MS", 10))
         self.commandResults.grid(row=3, pady=[5,10])
 
     def Build(self, comm):
@@ -253,10 +253,12 @@ class GUI:
             # if blank but not required
             elif c.get(1.0, "end").strip() == "" and comm["flags"][j][1] == False:
                 pass
-            else:  # if not blank
+            # if not blank
+            else:  
                 commandList += " "
                 commandList += comm["flags"][j][2]
-                commandList += f' "{c.get(1.0, "end").strip()}"'
+                flagOutput = c.get(1.0, "end").strip().replace("\n", "\\n")
+                commandList += f' "{flagOutput}"'
         if isSuccessful:
             commandList += f' {comm["append"]}'
         self.commandResults.delete(1.0, "end")
