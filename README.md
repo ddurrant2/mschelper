@@ -20,3 +20,8 @@ This window allows the user to select a file on their system, and generate file 
 ![image](https://github.com/ddurrant2/mschelper/assets/140553472/a54b4910-37ef-4fc7-bdd5-7a7751c0bd76)
 This window allows the user to paste a body of text, and receive a comma-separated, redundancy-free list of CVEs for further research purposes.
 
+## Build Instructions
+(Under Construction)
+Run the following command from the parent folder of the project, or other desired folder.
+py -m PyInstaller mschelper\main.py -n mschelper-0.8.0.exe -F --windowed --icon="mschelper\myicon.ico" --add-data "mschelper\mylogo.gif;." --add-data "mschelper\commands.json;." --add-data "mschelper\init.json;."
+
