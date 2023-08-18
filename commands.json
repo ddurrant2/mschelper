@@ -2,50 +2,50 @@
     "hashcat": {
         "title": "Hashcat",
         "prepend": "hashcat",
-        "flags": [
-            [
-                "-m Hash Encoding",
-                true,
-                "-m"
-            ],
-            [
-                "-a Cracking Algorithm",
-                true,
-                "-a"
-            ],
-            [
-                "-o Output File Name",
-                false,
-                "-o"
-            ],
-            [
-                "Hash file location",
-                true,
-                ""
-            ],
-            [
-                "Dictionary / Wordlist",
-                true,
-                ""
-            ]
-        ],
+        "flags": {
+            "-m Hash Encoding": {
+                "name": "-m Hash Encoding",
+                "required": true, 
+                "flag": "-m"
+            },
+            "-a Cracking Algorithm": {
+                "name": "-a Cracking Algorithm",
+                "required": true, 
+                "flag": "-a"
+            },
+            "-o Output File Name": {
+                "name": "-o Output File Name",
+                "required": false, 
+                "flag": "-o"
+            },
+            "Hash file location": {
+                "name": "Hash file location",
+                "required": true, 
+                "flag": ""
+            },
+            "Dictionary / Wordlist": {
+                "name": "Dictionary / Wordlist",
+                "required": true, 
+                "flag": ""
+            }
+        },
         "append": ""
     },
     "jtr": {
         "title": "John the Ripper",
         "prepend": "sudo john",
-        "flags": [
-            [
-                "Input file",
-                true,
-                ""
-            ],
-            [
-                "Output file",
-                true,
-                ">"
-            ]
-        ],
+        "flags": {
+            "Input File": {
+                "name": "Input File",
+                "required": true, 
+                "flag": ""
+            },
+            "Output File": {
+                "name": "Output File",
+                "required": true, 
+                "flag": ""
+            }
+        },
         "append": ""
     }
 }
