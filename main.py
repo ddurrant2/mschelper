@@ -5,11 +5,16 @@ This Python Tkinter app serves as a handy assistant in basic security analyst ne
 from gui import GUI 
 import json
 import os
+import time
 
-
-if __name__ == "__main__":
+def InitializeGUI(mode):
     with open(os.path.join(os.path.dirname(__file__), "commands.json")) as comms_json: 
         comms = json.load(comms_json)
     with open(os.path.join(os.path.dirname(__file__), "init.json")) as init_json: 
         init = json.load(init_json)
-    newgui = GUI(comms, init)
+    newgui = GUI(comms, init, mode)
+    return newgui
+
+
+if __name__ == "__main__":
+    newgui = InitializeGUI("mainloop")
